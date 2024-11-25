@@ -15,6 +15,76 @@ module "ingress_nginx_controller" {
   vpc_name              = var.vpc_name
 }
 
+## argocd
+resource "kubernetes_namespace" "argocd" {
+  count = var.argoworkflow_enabled || var.argocd_enabled ? 1 : 0
+  metadata {
+    name = var.argocd_enabled ? var.argocd_config.namespace : var.argoworkflow_config.namespace
+  }
+}
+module "argocd" {
+  source     = "./addons/argocd"
+  depends_on = [kubernetes_namespace.argocd] #[module.aws_vpc_cni, module.service-monitor-crd, kubernetes_namespace.argocd, module.ingress-nginx]
+  count      = var.argocd_enabled ? 1 : 0
+  argocd_config = {
+    hostname                     = var.argocd_config.hostname
+    values_yaml                  = var.argocd_config.values_yaml
+    redis_ha_enabled             = var.argocd_config.redis_ha_enabled
+    autoscaling_enabled          = var.argocd_config.autoscaling_enabled
+    slack_notification_token     = var.argocd_config.slack_notification_token
+    argocd_notifications_enabled = var.argocd_config.argocd_notifications_enabled
+    ingress_class_name           = var.argocd_config.ingress_class_name
+  }
+  namespace = var.argocd_config.namespace
+}
+
+# argo-workflow
+module "argocd-workflow" {
+  source     = "./addons/argocd-workflow"
+  depends_on = [kubernetes_namespace.argocd] #[module.aws_vpc_cni, module.service-monitor-crd, kubernetes_namespace.argocd, module.ingress-nginx]
+  count      = var.argoworkflow_enabled ? 1 : 0
+  argoworkflow_config = {
+    values              = var.argoworkflow_config.values
+    hostname            = var.argoworkflow_config.hostname
+    ingress_class_name  = var.argoworkflow_config.ingress_class_name
+    autoscaling_enabled = var.argoworkflow_config.autoscaling_enabled
+  }
+  namespace = var.argoworkflow_config.namespace
+}
+
+# argo-project
+module "argo-project" {
+  source     = "./addons/argocd-projects"
+  count      = var.argocd_enabled ? 1 : 0
+  depends_on = [module.argocd, kubernetes_namespace.argocd]
+  name       = var.argoproject_config.name
+  namespace  = var.argocd_config.namespace
+}
+
+## KUBERNETES DASHBOARD
+# module "kubernetes-dashboard" {
+#   source                              = "./addons/kubernetes-dashboard"
+#   count                               = var.kubernetes_dashboard_enabled ? 1 : 0
+#   # depends_on                          = [module.cert-manager-le-http-issuer, module.ingress-nginx, module.service-monitor-crd]
+#   k8s_dashboard_hostname              = var.k8s_dashboard_hostname
+#   alb_acm_certificate_arn             = var.alb_acm_certificate_arn
+#   k8s_dashboard_ingress_load_balancer = var.k8s_dashboard_ingress_load_balancer
+#   ingress_class_name                  = var.enable_private_nlb ? "internal-${var.ingress_nginx_config.ingress_class_name}" : var.ingress_nginx_config.ingress_class_name
+# }
+
+# Internal Ingress Nginx Controller
+module "internal_ingress_nginx_controller" {
+  source                = "./addons/internal-ingress-nginx"
+  count                 = var.internal_ingress_nginx_enabled ? 1 : 0
+  ingress_nginx_version = var.ingress_nginx_version
+  project               = var.project
+  region                = var.region
+  environment           = var.environment
+  # name                  = var.name
+  cluster_name          = var.cluster_name
+  vpc_name              = var.vpc_name
+}
+
 # Cert-Manager
 module "cert_manager" {
   source               = "./addons/cert-manager"

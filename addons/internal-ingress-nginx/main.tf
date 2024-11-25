@@ -11,10 +11,10 @@ resource "kubernetes_namespace" "ingress_nginx" {
   }
 }
 
-resource "helm_release" "ingress_nginx_controller" {
+resource "helm_release" "internal_ingress_nginx_controller" {
   depends_on = [kubernetes_namespace.ingress_nginx]
 
-  name       = "ingress-nginx-controller"
+  name       = "internal-ingress-nginx-controller"
   repository = "https://kubernetes.github.io/ingress-nginx"
   chart      = "ingress-nginx"
   namespace  = "ingress-nginx"
@@ -34,7 +34,7 @@ resource "helm_release" "ingress_nginx_controller" {
 }
 
 data "kubernetes_service" "get_ingress_nginx_controller_svc" {
-  depends_on = [helm_release.ingress_nginx_controller]
+  depends_on = [helm_release.internal_ingress_nginx_controller]
   metadata {
     name      = "ingress-nginx-controller-controller"
     namespace = "ingress-nginx"

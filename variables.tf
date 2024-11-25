@@ -9,10 +9,108 @@ variable "ingress_nginx_enabled" {
   default     = false
 }
 
+variable "argocd_enabled" {
+  description = "Determine whether argocd is enabled or not"
+  default     = false
+  type        = bool
+}
+
+variable "argocd_config" {
+  type = object({
+    hostname                     = string
+    values_yaml                  = any
+    redis_ha_enabled             = bool
+    autoscaling_enabled          = bool
+    slack_notification_token     = string
+    argocd_notifications_enabled = bool
+    ingress_class_name           = string
+    namespace                    = string
+  })
+
+  default = {
+    hostname                     = ""
+    values_yaml                  = {}
+    redis_ha_enabled             = false
+    autoscaling_enabled          = false
+    slack_notification_token     = ""
+    argocd_notifications_enabled = false
+    ingress_class_name           = ""
+    namespace                    = "argocd"
+  }
+}
+
+variable "argoworkflow_enabled" {
+  description = "Determine whether argocd-workflow is enabled or not"
+  default     = false
+  type        = bool
+}
+
+variable "argoworkflow_config" {
+  type = object({
+    values              = any
+    namespace           = string
+    hostname            = string
+    ingress_class_name  = string
+    autoscaling_enabled = bool
+  })
+
+  default = {
+    values              = {}
+    namespace           = "argocd"
+    hostname            = ""
+    ingress_class_name  = ""
+    autoscaling_enabled = true
+  }
+}
+
+variable "argoproject_config" {
+  type = object({
+    name = string
+  })
+
+  default = {
+    name = ""
+  }
+}
+
+variable "kubernetes_dashboard_enabled" {
+  description = "Determines whether k8s-dashboard is enabled or not"
+  default     = false
+  type        = bool
+}
+
+variable "kubernetes_dashboard_config" {
+  description = "Specify all the configuration setup here"
+  type = object({
+    k8s_dashboard_ingress_load_balancer = string
+    alb_acm_certificate_arn             = string
+    k8s_dashboard_hostname              = string
+    private_alb_enabled                 = bool
+  })
+
+  default = {
+    k8s_dashboard_ingress_load_balancer = ""
+    alb_acm_certificate_arn             = ""
+    k8s_dashboard_hostname              = ""
+    private_alb_enabled                 = false
+  }
+}
+
+variable "cluster_name" {
+  description = "Name of the cluster"
+  type        = string
+}
+
+variable "internal_ingress_nginx_enabled" {
+  description = "Enable or disable the nginx-ingress controller"
+  type        = bool
+  default     = false
+}
+
 variable "ingress_nginx_version" {
   description = "Version of the nginx-ingress controller"
   type        = string
-  default     = "4.7.0"
+  default     = "4.11.0"
 }
 
 variable "project" {
@@ -42,7 +140,7 @@ variable "cert_manager_enabled" {
 variable "cert_manager_version" {
   description = "Version of cert-manager to deploy"
   type        = string
-  default     = "1.12.2"
+  default     = "1.15.1"
 }
 
 variable "cert_manager_install_letsencrypt_http_issuers" {

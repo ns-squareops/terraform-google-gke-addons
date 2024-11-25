@@ -43,6 +43,7 @@ data "kubernetes_service" "get_ingress_nginx_controller_svc" {
 
 resource "google_compute_firewall" "default" {
   name    = format("%s-%s-master-nodes-access", var.name, var.environment)
+  project = var.project
   network = var.vpc_name
 
   allow {

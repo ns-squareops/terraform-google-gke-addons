@@ -13,7 +13,7 @@ variable "region" {
   type        = string
 }
 
-variable "ingress_nginx_enabled" {
+variable "internal_ingress_nginx_enabled" {
   description = "Enable or disable the nginx-ingress controller"
   type        = bool
   default     = false
