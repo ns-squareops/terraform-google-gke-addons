@@ -73,6 +73,12 @@ variable "argoproject_config" {
   }
 }
 
+variable "private_nlb_enabled" {
+  description = "Control wheather to install public nlb or private nlb. Default is private"
+  type        = bool
+  default     = false
+}
+
 variable "kubernetes_dashboard_enabled" {
   description = "Determines whether k8s-dashboard is enabled or not"
   default     = false
@@ -85,7 +91,8 @@ variable "kubernetes_dashboard_config" {
     k8s_dashboard_ingress_load_balancer = string
     alb_acm_certificate_arn             = string
     k8s_dashboard_hostname              = string
-    private_alb_enabled                 = bool
+    private_alb_enabled                 = bool    
+    ingress_class_name                  = string
   })
 
   default = {
@@ -93,9 +100,49 @@ variable "kubernetes_dashboard_config" {
     alb_acm_certificate_arn             = ""
     k8s_dashboard_hostname              = ""
     private_alb_enabled                 = false
+    ingress_class_name                  = "nginx"
   }
 }
 
+variable "enable_private_nlb" {
+  description = "Control wheather to install public nlb or private nlb. Default is private"
+  type        = bool
+  default     = false
+}
+
+variable "ingress_nginx_config" {
+  description = "Configure ingress-nginx to setup addons"
+  type = object({
+    ingress_class_name     = string
+    # enable_service_monitor = bool
+    values                 = any
+    namespace              = string
+  })
+  default = {
+    ingress_class_name     = "ingress-nginx"
+    enable_service_monitor = false
+    values                 = {}
+    namespace              = "ingress-nginx"
+  }
+}
+
+variable "k8s_dashboard_hostname" {
+  description = "Specify the hostname for the k8s dashboard. "
+  default     = ""
+  type        = string
+}
+
+variable "k8s_dashboard_ingress_load_balancer" {
+  description = "Controls whether to enable ALB Ingress or not."
+  type        = string
+  default     = "nlb"
+}
+
+variable "alb_acm_certificate_arn" {
+  description = "ARN of the ACM certificate to be used for ALB Ingress."
+  type        = string
+  default     = ""
+}
 variable "cluster_name" {
   description = "Name of the cluster"
   type        = string

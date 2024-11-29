@@ -1,10 +1,17 @@
-## Set kind to DaemonSet so no affinity is assigned to it
+## Set kind to Deployment so no affinity is assigned to it
 
 controller:
   kind: Deployment
+
   service:
-    loadBalancerIP:
+    loadBalancerIP: # Optional: Specify a static internal IP if needed.
     externalTrafficPolicy: Cluster
+    type: LoadBalancer
+    annotations:
+      # Annotation to make the LoadBalancer internal in GCP
+      networking.gke.io/load-balancer-type: "Internal"
+      cloud.google.com/neg: '{"ingress": true}' # Enable NEG integration
+
   resources:
     limits:
       cpu: 250m
@@ -12,15 +19,18 @@ controller:
     requests:
       cpu: 250m
       memory: 500Mi
+
   autoscaling:
     enabled: true
     minReplicas: 2
     maxReplicas: 10
     targetCPUUtilizationPercentage: 80
     targetMemoryUtilizationPercentage: 80
+
   podAnnotations:
     co.elastic.logs/enabled: "true"
     co.elastic.logs/module: nginx
+
   affinity:
     podAntiAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
@@ -40,9 +50,7 @@ controller:
             - controller
         topologyKey: "kubernetes.io/hostname"
 
-
-
-## Enabling metrics for prometheus monitoring
+  ## Enabling metrics for prometheus monitoring
 
   metrics:
     enabled: ${enable_service_monitor}
@@ -50,5 +58,3 @@ controller:
       enabled: true
       additionalLabels:
         release: "prometheus-operator"
-#         prometheus.io/scrape: "true"
-#         prometheus.io/port: "10254"

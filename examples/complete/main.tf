@@ -2,10 +2,10 @@ locals {
   region       = "asia-south1"
   location     = "asia-south1"
   environment  = "dev"
-  name         = "org"
+  name         = "gkeaddons"
   project_name = "atmosly-439606"
   project      = "atmosly-439606"
-  cluster_name = "org-dev-gke-cluster"
+  cluster_name = "gke-dev-gke-cluster"
   argocd_namespace = "argocd"
 }
 
@@ -17,11 +17,11 @@ module "gke_addons" {
   project                                       = local.project
   environment                                   = local.environment
   cluster_name                                  = local.cluster_name
-  ingress_nginx_enabled                         = true
-  internal_ingress_nginx_enabled                = false # not working 
-  cert_manager_enabled                          = false
-  cert_manager_install_letsencrypt_http_issuers = false
-  cert_manager_letsencrypt_email                = ""
+  ingress_nginx_enabled                         = false
+  internal_ingress_nginx_enabled                = true # not working 
+  cert_manager_enabled                          = true
+  cert_manager_install_letsencrypt_http_issuers = true
+  cert_manager_letsencrypt_email                = "mona@squareops.com"
   external_secret_enabled                       = false
   service_monitor_crd_enabled                   = false
   enable_keda                                   = false
@@ -29,7 +29,7 @@ module "gke_addons" {
   vpc_name                                      = "atmosly-vpc"
 
 ## ArgoCD
-  argocd_enabled = true
+  argocd_enabled = false
   argocd_config = {
     hostname                     = "argocd.rnd.squareops.in"
     values_yaml                  = file("${path.module}/config/argocd.yaml")
@@ -55,13 +55,12 @@ module "gke_addons" {
   }
 
   ## KUBERNETES-DASHBOARD
-  # kubernetes_dashboard_enabled = false
-  # kubernetes_dashboard_config = {
-  #   k8s_dashboard_ingress_load_balancer = "nlb"                            ##Choose your load balancer type (e.g., NLB or ALB). Enable load balancer controller, if you require ALB, Enable Ingress Nginx if NLB.
-  #   private_alb_enabled                 = false                            # to enable Internal (Private) ALB , set this and aws_load_balancer_controller_enabled "true" together
-  #   alb_acm_certificate_arn             = ""                               # If using ALB in above parameter, ensure you provide the ACM certificate ARN for SSL.
-  #   k8s_dashboard_hostname              = "k8s-dashboard.rnd.squareops.in" # Enter Hostname
-  #   ingress_class_name                  = "nginx"
-  # }  
-
+  kubernetes_dashboard_enabled = false
+  kubernetes_dashboard_config = {
+    k8s_dashboard_ingress_load_balancer = "alb"                            ##Choose your load balancer type (e.g., NLB or ALB). Enable load balancer controller, if you require ALB, Enable Ingress Nginx if NLB.
+    private_alb_enabled                 = false                            # to enable Internal (Private) ALB , set this and aws_load_balancer_controller_enabled "true" together
+    alb_acm_certificate_arn             = ""                               # If using ALB in above parameter, ensure you provide the ACM certificate ARN for SSL.
+    k8s_dashboard_hostname              = "k8s-dashboard.rnd.squareops.in" # Enter Hostname
+    ingress_class_name                  = "gce"
+  }  
 }

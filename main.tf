@@ -62,15 +62,16 @@ module "argo-project" {
 }
 
 ## KUBERNETES DASHBOARD
-# module "kubernetes-dashboard" {
-#   source                              = "./addons/kubernetes-dashboard"
-#   count                               = var.kubernetes_dashboard_enabled ? 1 : 0
-#   # depends_on                          = [module.cert-manager-le-http-issuer, module.ingress-nginx, module.service-monitor-crd]
-#   k8s_dashboard_hostname              = var.k8s_dashboard_hostname
-#   alb_acm_certificate_arn             = var.alb_acm_certificate_arn
-#   k8s_dashboard_ingress_load_balancer = var.k8s_dashboard_ingress_load_balancer
-#   ingress_class_name                  = var.enable_private_nlb ? "internal-${var.ingress_nginx_config.ingress_class_name}" : var.ingress_nginx_config.ingress_class_name
-# }
+module "kubernetes-dashboard" {
+  source                              = "./addons/kubernetes-dashboard"
+  count                               = var.kubernetes_dashboard_enabled ? 1 : 0
+  # depends_on                          = [module.cert-manager-le-http-issuer, module.ingress-nginx, module.service-monitor-crd]
+  k8s_dashboard_hostname              = var.kubernetes_dashboard_config.k8s_dashboard_hostname
+  alb_acm_certificate_arn             = var.kubernetes_dashboard_config.alb_acm_certificate_arn
+  k8s_dashboard_ingress_load_balancer = var.kubernetes_dashboard_config.k8s_dashboard_ingress_load_balancer
+  private_alb_enabled                 = var.kubernetes_dashboard_config.private_alb_enabled
+  ingress_class_name                  = var.kubernetes_dashboard_config.k8s_dashboard_ingress_load_balancer == "alb" ? "alb" : (var.private_nlb_enabled ? "internal-nginx" : var.kubernetes_dashboard_config.ingress_class_name)
+}
 
 # Internal Ingress Nginx Controller
 module "internal_ingress_nginx_controller" {

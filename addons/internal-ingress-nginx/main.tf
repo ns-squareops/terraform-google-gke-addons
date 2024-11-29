@@ -3,6 +3,7 @@ resource "google_compute_address" "ingress_ip_address" {
   name    = format("%s-%s-nginx-controller-ip", var.cluster_name, var.environment)
   region  = var.region
   project = var.project
+  address_type = "INTERNAL"
 }
 
 resource "kubernetes_namespace" "ingress_nginx" {
@@ -18,7 +19,7 @@ resource "helm_release" "internal_ingress_nginx_controller" {
   repository = "https://kubernetes.github.io/ingress-nginx"
   chart      = "ingress-nginx"
   namespace  = "ingress-nginx"
-  version    = var.ingress_nginx_version
+  version    = "4.11.3"                       #var.ingress_nginx_version 
   timeout    = 600
 
   values = [
@@ -36,7 +37,7 @@ resource "helm_release" "internal_ingress_nginx_controller" {
 data "kubernetes_service" "get_ingress_nginx_controller_svc" {
   depends_on = [helm_release.internal_ingress_nginx_controller]
   metadata {
-    name      = "ingress-nginx-controller-controller"
+    name      = "ingress-nginx-controller"
     namespace = "ingress-nginx"
   }
 }
